@@ -3,7 +3,7 @@ import dlib
 import numpy as np
 import os, sys
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from PIL import Image, ImageTk
 import threading
 import time
@@ -22,8 +22,9 @@ detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(os.path.join(HOME, r"shape_predictor_68_face_landmarks.dat"))
 
 class FaceDataCollector:
-    def __init__(self, root):
+    def __init__(self, root, saving_dir):
         self.root = root
+        self.saving_dir = saving_dir
         self.root.title("Face Data Collection")
         self.root.geometry("900x700")
         
@@ -226,7 +227,7 @@ class FaceDataCollector:
             return
         
         # Create output directory
-        self.output_dir = os.path.join(HOME, f"face_dataset/{self.face_id}")
+        self.output_dir = os.path.join(self.saving_dir, f"face_dataset/{self.face_id}")
         if os.path.exists(self.output_dir):
             # Remove old directory if exists
             shutil.rmtree(self.output_dir)
@@ -322,9 +323,73 @@ class FaceDataCollector:
             self.cap.release()
         self.root.destroy()
 
-if __name__ == "__main__":
-    
+def select_saving_dir(default_dir):
+    saving_dir = [default_dir]  # Dùng list để thay đổi giá trị được trong hàm con
+
+    def on_continue():
+        dialog.destroy()
+
+    def on_browse():
+        dir_selected = filedialog.askdirectory(
+            title="Select directory to save the dataset",
+            initialdir=default_dir,
+            parent=dialog
+        )
+        if dir_selected:
+            saving_dir[0] = dir_selected
+        dialog.destroy()
+
+    dialog = tk.Toplevel()
+    dialog.title("Select Saving Directory")
+    dialog.geometry("430x120")
+    dialog.resizable(False, False)
+    label = tk.Label(
+        dialog,
+        text=f"Please select a directory to save the dataset.\nDefault: {default_dir}",
+        wraplength=400,
+        justify="left"
+    )
+    label.pack(padx=16, pady=(16, 8))
+
+    button_frame = tk.Frame(dialog)
+    button_frame.pack(pady=(0, 16))
+
+    continue_btn = tk.Button(
+        button_frame,
+        text="Continue with default",
+        width=18,
+        command=on_continue
+    )
+    continue_btn.pack(side="left", padx=10)
+
+    browse_btn = tk.Button(
+        button_frame,
+        text="Browse...",
+        width=12,
+        command=on_browse
+    )
+    browse_btn.pack(side="left")
+
+    dialog.grab_set()
+    dialog.wait_window()
+    return saving_dir[0]
+
+if __name__ == "__main__":    
     root = tk.Tk()
-    app = FaceDataCollector(root)
+    root.withdraw()
+    
+    # messagebox.showinfo(
+    #     "Select Saving Directory",
+    #     f"Please select a directory to save the dataset.\nDefault is: {HOME}"
+    # )
+    # saving_dir = filedialog.askdirectory(
+    #     title="Select directory to save the dataset",
+    #     initialdir=HOME,
+    #     parent=root
+    # )
+    saving_dir = select_saving_dir(HOME)
+
+    root.deiconify()
+    app = FaceDataCollector(root, saving_dir)
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     root.mainloop()
