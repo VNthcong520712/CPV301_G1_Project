@@ -1,4 +1,4 @@
-# Instructions for Installing CMake and Python Libraries on Windows
+# Instructions for Installing CMake, C++ Development Tools, and Python Libraries on Windows
 
 ## 1. Install CMake
 
@@ -15,6 +15,29 @@ If the CMake version is displayed, the installation was successful.
 
 ---
 
+## 1.1. Install C++ Development Tools (Required for CMake and dlib)
+
+To build and install `dlib` and use `cmake` on Windows, you need to install C++ development tools (Visual Studio Build Tools):
+
+1. Go to the [Visual Studio Build Tools download page](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+2. Download and run the installer.
+3. In the installer, select **"Desktop development with C++"**.
+4. Click **Install** to begin the installation.  
+   - You do not need the full Visual Studio IDE, just the Build Tools component.
+5. After installation, restart your computer if prompted to update your environment variables.
+
+**Notes:**
+- Make sure that "MSVC v142 - VS 2019 C++ x64/x86 build tools" (or equivalent for your version) is selected during installation.
+- Ensure that `cmake`, `cl.exe` (the C++ compiler), and build tools are available in your system PATH.
+
+To verify, open Command Prompt and type:
+```sh
+cl
+```
+If you see information about the Microsoft C/C++ compiler, you have installed it successfully.
+
+---
+
 ## 2. Install Python 3.8
 
 1. Download Python 3.8 from [python.org/downloads/release/python-380/](https://www.python.org/downloads/release/python-380/).
@@ -24,11 +47,11 @@ To check that Python is installed:
 ```sh
 python --version
 ```
-If you have many python versions, you can run code with python 3.8 with command
+If you have multiple Python versions, you can run code with python 3.8 using:
 ```sh
 python3.8 --version
 ```
-Using this format if you want to run code with python3.8
+Use this format if you want to run code with python3.8 specifically.
 
 ---
 
@@ -56,8 +79,8 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-**Note:**  
-- The `dlib` library requires CMake to build during installation, so make sure CMake is installed and added to PATH.
+**Notes:**  
+- The `dlib` library requires CMake and C++ Build Tools to build during installation, so make sure both are installed and added to your PATH.
 - If you encounter errors installing `dlib`, check your CMake and Visual Studio Build Tools installation, or consider using a pre-built wheel from [https://pypi.org/project/dlib/#files](https://pypi.org/project/dlib/#files).
 
 ---
