@@ -1,0 +1,65 @@
+# === General ===
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+env/
+venv/
+ENV/
+.venv/
+.ipynb_checkpoints
+.mypy_cache/
+.pytest_cache/
+coverage.xml
+htmlcov/
+.tox/
+.cache/
+*.sqlite3
+
+# Virtual environment
+pip-wheel-metadata/
+site/
+
+# === C / C++ ===
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+*.out
+*.a
+*.d
+*.lib
+*.class
+
+# Build folders
+/build/
+bin/
+debug/
+release/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# === IDEs and editors ===
+.vscode/
+.idea/
+*.code-workspace
+
+# === Misc ===
+*.bak
+*.orig
+*.rej
