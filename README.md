@@ -111,10 +111,10 @@ print("All libraries are installed correctly!")
 
 ## 7. Contributors
 This guide was contributed and maintained by the following members of the F-AI Club:
-- Nguyen Thanh Cong – GitHub
-- Dang Gia Duc – GitHub
-- Nguyen Hoang Duy – (GitHub link not provided)
-- Tran Khoi Nguyen – GitHub
+- [Nguyen Thanh Cong](github.com/VNthcong520712)
+- [Dang Gia Duc](https://github.com/ducgym05)
+- Nguyen Hoang Duy
+- [Tran Khoi Nguyen](https://github.com/KNguyenTran)
 
 We thank all contributors for their support in making AI tools and environments more accessible to the community!
 
