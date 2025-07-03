@@ -108,3 +108,14 @@ print("All libraries are installed correctly!")
 - If you have issues building `dlib`, refer to the official documentation or seek help from the community.
 
 ---
+
+## 7. Contributors
+This guide was contributed and maintained by the following members of the F-AI Club:
+- Nguyen Thanh Cong – GitHub
+- Dang Gia Duc – GitHub
+- Nguyen Hoang Duy – (GitHub link not provided)
+- Tran Khoi Nguyen – GitHub
+
+We thank all contributors for their support in making AI tools and environments more accessible to the community!
+
+---
