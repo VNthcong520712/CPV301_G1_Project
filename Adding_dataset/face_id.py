@@ -8,18 +8,26 @@ from PIL import Image, ImageTk
 import threading
 import time
 import shutil
-
-CAM_ID = 0 # Default camera ID, change if needed
-NUM_IMAGES = 50  # Number of images to collect for each direction
-DELAY = 0.1 # Delay between saves in seconds
-PADD = 20 # Padding around face ROI
+import json
 
 HOME = os.path.dirname(__file__)
 sys.path.append(HOME)
 print("Root directory:", HOME)
+
+F_PATH = os.path.abspath(os.path.join(HOME, ".."))
+config_path = os.path.join(F_PATH,"config.json")
+with open(config_path,'r') as js: 
+    config = json.load(js)
+cfg = config["COLLECTION"]
+
+CAM_ID = config['CAM_ID'] # Default camera ID, change if needed
+NUM_IMAGES = cfg['NUM_IMAGES']  # Number of images to collect for each direction
+DELAY = cfg['DELAY'] # Delay between saves in seconds
+PADD = cfg['PADD'] # Padding around face ROI
+
 # Load face detector and landmark predictor
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor(os.path.join(HOME, r"shape_predictor_68_face_landmarks.dat"))
+predictor = dlib.shape_predictor(os.path.join(F_PATH, "shape_predictor_68_face_landmarks.dat"))
 
 class FaceDataCollector:
     def __init__(self, root, saving_dir):

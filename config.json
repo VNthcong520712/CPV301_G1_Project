@@ -1,0 +1,21 @@
+{
+	"CAM_ID" : 1,
+	"COLLECTION" : {
+		"NUM_IMAGES" : 100,
+		"DELAY" : 0.1,
+		"PADD" : 20
+	},
+	"FACE_DETECT" : {
+		"PADD" : 10,
+		"SHOW_IMG" : true
+	},
+	"FEATURES_EXTRACT" : {
+		"DATA_PATH" : "AI1901_face_dataset",
+		"OUT_YML" : "FaceId/CV"
+	},
+	"FACE_RECOGNITION" : {
+		"YML_FILE" : "FaceId/CV/model_face_03-23-41.yml",
+		"LABEL_FILE" : "FaceId/CV/label_map.txt",
+		"CONFIDENCE" : 60
+	}
+}

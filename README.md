@@ -38,20 +38,20 @@ If you see information about the Microsoft C/C++ compiler, you have installed it
 
 ---
 
-## 2. Install Python 3.8
+## 2. Install Python 3.9
 
-1. Download Python 3.8 from [python.org/downloads/release/python-380/](https://www.python.org/downloads/release/python-380/).
+1. Download Python 3.9 from [python.org/downloads/release/python-390/](https://www.python.org/downloads/release/python-390/).
 2. Run the installer. Make sure to check **Add Python to PATH** before clicking Install.
 
 To check that Python is installed:
 ```sh
 python --version
 ```
-If you have multiple Python versions, you can run code with python 3.8 using:
+If you have multiple Python versions, you can run code with python 3.9 using:
 ```sh
-python3.8 --version
+python3.9 --version
 ```
-Use this format if you want to run code with python3.8 specifically.
+Use this format if you want to run code with python3.9 specifically.
 
 ---
 
@@ -66,14 +66,7 @@ venv\Scripts\activate
 
 ## 4. Install Required Python Libraries
 
-Create a `requirements.txt` file with the following content:
-```
-dlib==20.0.0
-opencv-python==4.10.0.84
-Pillow==9.5.0
-```
-
-Then install the libraries using pip:
+Install the libraries using pip:
 ```sh
 pip install --upgrade pip
 pip install -r requirements.txt
@@ -113,7 +106,7 @@ print("All libraries are installed correctly!")
 This guide was contributed and maintained by the following members of the F-AI Club:
 - [Nguyen Thanh Cong](github.com/VNthcong520712)
 - [Dang Gia Duc](https://github.com/ducgym05)
-- Nguyen Hoang Duy
+- [Nguyen Hoang Duy](https://github.com/duynguyen123vn)
 - [Tran Khoi Nguyen](https://github.com/KNguyenTran)
 
 We thank all contributors for their support in making AI tools and environments more accessible to the community!

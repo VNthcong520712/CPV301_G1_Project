@@ -1,4 +1,7 @@
+FaceID\
+
 # === General ===
+AI1901_face_dataset/
 *.log
 *.tmp
 *.swp
