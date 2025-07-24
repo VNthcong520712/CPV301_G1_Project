@@ -20,8 +20,13 @@ def train_faces(dataset_dir, output_file='student_encodings.pkl', model="hog"):
                             Mỗi thư mục con trong dataset_dir là tên của một sinh viên,
                             và chứa các ảnh khuôn mặt của sinh viên đó.
         output_file (str): Tên file để lưu trữ các encoding đã trích xuất.
-        model (str): Mô hình phát hiện khuôn mặt để sử dụng ("hog" cho CPU, "cnn" cho GPU).
+        model (str): Mô hình phát hiện khuôn mặt để sử dụng ("hog" cho CPU).
+                     Lưu ý: "cnn" (GPU) đã bị loại bỏ trong phiên bản này.
     """
+    if model != "hog":
+        print("Cảnh báo: Chỉ hỗ trợ mô hình 'hog' (CPU). Đang chuyển sang 'hog'.")
+        model = "hog"
+
     known_encodings = {}
     n = 0
     for student_name in os.listdir(dataset_dir):
@@ -42,7 +47,7 @@ def train_faces(dataset_dir, output_file='student_encodings.pkl', model="hog"):
                         img_path = os.path.join(root, img_file)
                         try:
                             image = face_recognition.load_image_file(img_path)
-                            # Phát hiện vị trí khuôn mặt. Sử dụng model được chọn.
+                            # Phát hiện vị trí khuôn mặt. Luôn sử dụng mô hình "hog" cho CPU.
                             face_locations = face_recognition.face_locations(image, model=model)
                             # Trích xuất encoding cho mỗi khuôn mặt
                             for face_location in face_locations:
@@ -98,7 +103,7 @@ class ProcessingThread(threading.Thread):
     def __init__(self, frame_queue, known_encodings, attendance_status, last_detected_time,
                  detect_name_buffer, detect_buffer_size, last_confirmed_name,
                  detected_id_label_update_callback, update_attendance_list_callback, stop_event,
-                 detection_model="hog"): # Thêm tham số detection_model
+                 detection_model="hog"): # Tham số detection_model, mặc định là "hog"
         super().__init__()
         self.frame_queue = frame_queue
         self.known_encodings = known_encodings
@@ -123,20 +128,16 @@ class ProcessingThread(threading.Thread):
                 end_queue_get_time = time.perf_counter()
                 # print(f"Thời gian lấy khung hình từ hàng đợi: {end_queue_get_time - start_queue_get_time:.4f} giây")
 
-                # Cải tiến 1: Giảm kích thước khung hình để tăng tốc độ phát hiện khuôn mặt.
-                # Có thể thử các giá trị fx, fy nhỏ hơn (ví dụ 0.125 hoặc 0.1) nếu cần tốc độ cao hơn
-                # và chấp nhận giảm độ chính xác phát hiện.
+                # Giảm kích thước khung hình để tăng tốc độ phát hiện khuôn mặt.
+                # Sử dụng fx=0.25, fy=0.25 để giảm kích thước ảnh xuống 1/4.
                 start_resize_time = time.perf_counter()
-                # Chỉ thay đổi kích thước nếu mô hình là CNN, vì CNN hoạt động tốt hơn trên ảnh lớn hơn
-                # hoặc nếu muốn tốc độ nhanh hơn cho HOG.
-                # Tuy nhiên, để linh hoạt, ta vẫn resize.
                 small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
                 rgb_small_frame = small_frame[:, :, ::-1] # Chuyển đổi BGR sang RGB
                 end_resize_time = time.perf_counter()
                 # print(f"Thời gian thay đổi kích thước và chuyển đổi màu: {end_resize_time - start_resize_time:.4f} giây")
 
                 start_face_detection_time = time.perf_counter()
-                # Sử dụng self.detection_model ở đây
+                # Sử dụng self.detection_model (luôn là "hog" trong phiên bản này)
                 face_locations_scaled = face_recognition.face_locations(rgb_small_frame, model=self.detection_model)
                 end_face_detection_time = time.perf_counter()
                 # print(f"Thời gian lấy vị trí khuôn mặt ({self.detection_model}): {end_face_detection_time - start_face_detection_time:.4f} giây")
@@ -147,7 +148,7 @@ class ProcessingThread(threading.Thread):
                 display_frame = frame.copy()
 
                 for (top_s, right_s, bottom_s, left_s) in face_locations_scaled:
-                    top = top_s * 4
+                    top = top_s * 4 # Phục hồi tọa độ về kích thước gốc
                     right = right_s * 4
                     bottom = bottom_s * 4
                     left = left_s * 4
@@ -155,6 +156,7 @@ class ProcessingThread(threading.Thread):
                     face_encoding = None
                     start_encoding_time = time.perf_counter()
                     try:
+                        # Trích xuất encoding từ khung hình gốc với tọa độ đã phục hồi
                         face_encoding = face_recognition.face_encodings(frame, [(top, right, bottom, left)])[0]
                     except IndexError: # Xử lý trường hợp không tìm thấy encoding cho khuôn mặt
                         face_encoding = None
@@ -193,10 +195,10 @@ class ProcessingThread(threading.Thread):
                                         self.last_confirmed_name = detected_name
                                     end_attendance_evaluation_time = time.perf_counter()
                                     # print(f"   Thời gian xử lý đánh giá có mặt: {end_attendance_evaluation_time - start_attendance_evaluation_time:.4f} giây")
+                                else:
+                                    # Nếu buffer chưa đủ hoặc không đồng nhất, vẫn coi là Unknown cho đến khi đủ điều kiện
+                                    detected_name = "Unknown" 
                             else:
-                                self.detect_name_buffer.append("Unknown")
-                                if len(self.detect_name_buffer) > self.detect_buffer_size:
-                                    self.detect_name_buffer.pop(0)
                                 detected_name = "Unknown"
                         else:
                             detected_name = "Unknown"
@@ -250,7 +252,7 @@ class AttendanceGUI:
             encodings_file (str): Đường dẫn đến file chứa các encoding khuôn mặt đã biết.
         """
         self.master = master
-        self.master.title("Hệ thống điểm danh khuôn mặt")
+        self.master.title("Hệ thống điểm danh khuôn mặt (CPU Only)")
         self.master.geometry("1200x700") 
         self.master.resizable(True, True) 
 
@@ -270,8 +272,8 @@ class AttendanceGUI:
             self.master.destroy()
             return
         
-        # Biến để lưu trữ lựa chọn mô hình phát hiện (mặc định là "hog" - CPU)
-        self.detection_model = tk.StringVar(value="hog") 
+        # Mô hình phát hiện khuôn mặt được cố định là "hog" (CPU)
+        self.detection_model = "hog" 
         self.processing_thread = None # Khởi tạo None để kiểm tra sau
 
         self.frame_queue = queue.Queue(maxsize=15) 
@@ -311,18 +313,18 @@ class AttendanceGUI:
             self._update_detected_id_label,
             self._update_attendance_list,
             self.stop_event,
-            detection_model=self.detection_model.get() # Truyền mô hình đã chọn
+            detection_model=self.detection_model # Truyền mô hình đã chọn ("hog")
         )
         self.processing_thread.daemon = True
         self.processing_thread.start()
-        print(f"Luồng xử lý đã bắt đầu với mô hình: {self.detection_model.get()}")
+        print(f"Luồng xử lý đã bắt đầu với mô hình: {self.detection_model}")
 
-    def _on_model_change(self, *args):
-        """Xử lý khi người dùng thay đổi lựa chọn mô hình."""
-        selected_model = self.detection_model.get()
-        print(f"Đã thay đổi mô hình phát hiện sang: {selected_model}")
-        # Khởi động lại luồng xử lý với mô hình mới
-        self._start_processing_thread()
+    # Loại bỏ hàm _on_model_change vì không còn lựa chọn mô hình
+    # def _on_model_change(self, *args):
+    #     """Xử lý khi người dùng thay đổi lựa chọn mô hình."""
+    #     selected_model = self.detection_model.get()
+    #     print(f"Đã thay đổi mô hình phát hiện sang: {selected_model}")
+    #     self._start_processing_thread()
 
     def _create_widgets(self):
         """Tạo và sắp xếp các widget trên giao diện."""
@@ -340,8 +342,8 @@ class AttendanceGUI:
         self.right_frame = ttk.Frame(self.main_frame)
         self.right_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         self.right_frame.grid_rowconfigure(0, weight=0) # Cho khung ID
-        self.right_frame.grid_rowconfigure(1, weight=0) # Cho lựa chọn mô hình
-        self.right_frame.grid_rowconfigure(2, weight=1) # Cho danh sách điểm danh
+        # self.right_frame.grid_rowconfigure(1, weight=0) # Loại bỏ hàng cho lựa chọn mô hình
+        self.right_frame.grid_rowconfigure(1, weight=1) # Cho danh sách điểm danh (thay đổi từ row 2 thành row 1)
         self.right_frame.grid_columnconfigure(0, weight=1)
 
         # Khung ID được phát hiện
@@ -351,23 +353,21 @@ class AttendanceGUI:
                                              font=("Arial", 24, "bold"), foreground="blue")
         self.detected_id_label.pack(pady=20)
 
-        # Khung lựa chọn mô hình
-        self.model_selection_frame = ttk.LabelFrame(self.right_frame, text="Chọn mô hình phát hiện", padding="10")
-        self.model_selection_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-
-        self.cpu_radio = ttk.Radiobutton(self.model_selection_frame, text="CPU (HOG)",
-                                         variable=self.detection_model, value="hog",
-                                         command=self._on_model_change)
-        self.cpu_radio.pack(anchor="w", pady=5)
-
-        self.gpu_radio = ttk.Radiobutton(self.model_selection_frame, text="GPU (CNN)",
-                                         variable=self.detection_model, value="cnn",
-                                         command=self._on_model_change)
-        self.gpu_radio.pack(anchor="w", pady=5)
+        # Loại bỏ khung lựa chọn mô hình vì chỉ sử dụng CPU (HOG)
+        # self.model_selection_frame = ttk.LabelFrame(self.right_frame, text="Chọn mô hình phát hiện", padding="10")
+        # self.model_selection_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        # self.cpu_radio = ttk.Radiobutton(self.model_selection_frame, text="CPU (HOG)",
+        #                                  variable=self.detection_model, value="hog",
+        #                                  command=self._on_model_change)
+        # self.cpu_radio.pack(anchor="w", pady=5)
+        # self.gpu_radio = ttk.Radiobutton(self.model_selection_frame, text="GPU (CNN)",
+        #                                  variable=self.detection_model, value="cnn",
+        #                                  command=self._on_model_change)
+        # self.gpu_radio.pack(anchor="w", pady=5)
 
 
         self.attendance_list_frame = ttk.LabelFrame(self.right_frame, text="Danh sách điểm danh", padding="10")
-        self.attendance_list_frame.grid(row=2, column=0, sticky="nsew", padx=5, pady=5) # Thay đổi row thành 2
+        self.attendance_list_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5) # Thay đổi row thành 1
 
         self.canvas_attendance = tk.Canvas(self.attendance_list_frame, background="#f0f0f0")
         self.scrollbar_attendance = ttk.Scrollbar(self.attendance_list_frame, orient="vertical", command=self.canvas_attendance.yview)
@@ -465,11 +465,13 @@ class AttendanceGUI:
             self.master.destroy()
 
 if __name__ == "__main__":
+    # Thay đổi đường dẫn đến thư mục dữ liệu của bạn
     dataset_dir = r'D:\Documents\Learning\FPT\SU25\CPV\excersice\Project\Code\CPV\AI1901_face_dataset'
     output_encodings_file = 'student_encodings.pkl'
 
     # Bước 1: Huấn luyện mô hình (chỉ cần chạy một lần hoặc khi có dữ liệu mới)
-    # Nếu bạn muốn huấn luyện bằng GPU, hãy thay đổi model="cnn"
+    # Luôn sử dụng model="hog" để chạy trên CPU.
+    # Bỏ comment dòng dưới đây nếu bạn cần huấn luyện lại dữ liệu.
     # train_faces(dataset_dir, output_encodings_file, model="hog") 
 
     # Bước 2: Chạy ứng dụng điểm danh với GUI
@@ -477,4 +479,3 @@ if __name__ == "__main__":
     app = AttendanceGUI(root, encodings_file=output_encodings_file)
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     root.mainloop()
-
