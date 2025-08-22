@@ -1,4 +1,8 @@
 FaceId/
+testface.py
+Dockerfile
+*.pkl
+*.docx
 
 # === General ===
 AI1901_face_dataset/

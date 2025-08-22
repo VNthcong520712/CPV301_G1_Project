@@ -15,7 +15,7 @@ def train_faces(dataset_dir, output_file='student_encodings.pkl', model="hog"):
     """
     Huấn luyện mô hình nhận dạng khuôn mặt bằng cách trích xuất các encoding từ ảnh.
 
-    Args:
+    Args:     
         dataset_dir (str): Đường dẫn đến thư mục chứa dữ liệu ảnh của sinh viên.
                             Mỗi thư mục con trong dataset_dir là tên của một sinh viên,
                             và chứa các ảnh khuôn mặt của sinh viên đó.
